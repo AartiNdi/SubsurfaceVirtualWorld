@@ -59,6 +59,37 @@ public class Rocks extends ApplicationTemplate
             attrs.setOutlineWidth(2d);
             attrs.setDrawInterior(true);
             attrs.setDrawOutline(false);
+
+            //GDAL configuration
+			gdal.SetConfigOption("GDAL_DATA", "data");
+	        ogr.RegisterAll();
+	        Feature feat;
+
+	        //assuming I extract data to rockData from source stringWithData
+	        DataSource rockData;
+	        rockData  = ogr.Open(stringWIthData);
+	        Feature pipe;
+
+	        while((pipe = poDS.GetLayerByIndex(0).GetNextFeature()) != null){
+                //System.out.println("Name: "+feat.GetFieldAsString("gml_id"));
+                //System.out.println("Lon: "+feat.GetGeometryRef().GetX());
+                //System.out.println("Lat: "+feat.GetGeometryRef().GetY());
+                //System.out.println("Elev: "+feat.GetFieldAsString("elevation"));
+                double elevation = Double.parseDouble(feat.GetFieldAsString("elevation"))*10;
+                Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
+                mycylinder.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
+                mycylinder.setAttributes(attrs);
+                mycylinder.setVisible(true);
+                mycylinder.setValue(AVKey.DISPLAY_NAME, "Cylinder with equal axes, Relative altitude mode");
+                layer.addRenderable(mycylinder);
+                
+            }
+            
+            // Add the layer to the model.
+            insertBeforeCompass(getWwd(), layer);
+            // Update layer panel
+            this.getLayerPanel().update(this.getWwd());
+        }
 		}
 
 		protected RenderableLayer getLayer()
@@ -74,4 +105,9 @@ public class Rocks extends ApplicationTemplate
             return null;
         }
 	}
+
+	public static void main(String[] args)
+    {
+        ApplicationTemplate.start("World Wind Cylinders", AppFrame.class);
+    }
 }
