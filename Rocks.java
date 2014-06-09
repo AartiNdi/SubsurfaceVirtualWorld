@@ -92,6 +92,56 @@ public class Rocks extends ApplicationTemplate
         }
 		}
 
+		protected JPanel makeDetailHintControlPanel()
+        {
+            JPanel controlPanel = new JPanel(new BorderLayout(0, 10));
+            controlPanel.setBorder(new CompoundBorder(BorderFactory.createEmptyBorder(9, 9, 9, 9),
+                new TitledBorder("Detail Hint")));
+
+            JPanel detailHintSliderPanel = new JPanel(new BorderLayout(0, 5));
+            {
+                int MIN = -10;
+                int MAX = 10;
+                int cur = 0;
+                JSlider slider = new JSlider(MIN, MAX, cur);
+                slider.setMajorTickSpacing(10);
+                slider.setMinorTickSpacing(1);
+                slider.setPaintTicks(true);
+                Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+                labelTable.put(-10, new JLabel("-1.0"));
+                labelTable.put(0, new JLabel("0.0"));
+                labelTable.put(10, new JLabel("1.0"));
+                slider.setLabelTable(labelTable);
+                slider.setPaintLabels(true);
+                slider.addChangeListener(new ChangeListener()
+                {
+                    public void stateChanged(ChangeEvent e)
+                    {
+                        double hint = ((JSlider) e.getSource()).getValue() / 10d;
+                        setCylinderDetailHint(hint);
+                        getWwd().redraw();
+                    }
+                });
+                detailHintSliderPanel.add(slider, BorderLayout.SOUTH);
+            }
+
+            JPanel sliderPanel = new JPanel(new GridLayout(2, 0));
+            sliderPanel.add(detailHintSliderPanel);
+
+            controlPanel.add(sliderPanel, BorderLayout.SOUTH);
+            return controlPanel;
+        }
+
+        protected void setCylinderDetailHint(double hint)
+        {
+            for (Renderable renderable : getLayer().getRenderables())
+            {
+                Cylinder2 current = (Cylinder2) renderable;
+                current.setDetailHint(hint);
+            }
+            System.out.println("cylinder detail hint set to " + hint);
+        }
+
 		protected RenderableLayer getLayer()
         {
             for (Layer layer : getWwd().getModel().getLayers())
