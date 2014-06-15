@@ -66,6 +66,7 @@ public class Rocks extends ApplicationTemplate
 	        Feature feat;
 
 	        //assuming I extract data to rockData from source stringWithData
+	        String stringWithData = "/home/vahni/projects/gsoc/pipe.gml";
 	        DataSource rockData;
 	        rockData  = ogr.Open(stringWIthData);
 	        Feature pipe;
@@ -75,7 +76,7 @@ public class Rocks extends ApplicationTemplate
                 //System.out.println("Lon: "+feat.GetGeometryRef().GetX());
                 //System.out.println("Lat: "+feat.GetGeometryRef().GetY());
                 //System.out.println("Elev: "+feat.GetFieldAsString("elevation"));
-                double elevation = Double.parseDouble(feat.GetFieldAsString("elevation"))*10;
+                double elevation = Double.parseDouble(pipe.GetFieldAsString("elevation"))*10;
                 Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
                 mycylinder.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
                 mycylinder.setAttributes(attrs);
@@ -84,13 +85,41 @@ public class Rocks extends ApplicationTemplate
                 layer.addRenderable(mycylinder);
                 
             }
-            
+
+            //Make transparent the layers
+            for (Layer layer : this.getWwd().getModel().getLayers()){
+                layer.setOpacity(0.8);
+            }
+
             // Add the layer to the model.
             insertBeforeCompass(getWwd(), layer);
             // Update layer panel
             this.getLayerPanel().update(this.getWwd());
         }
-		}
+
+        protected void initAnalyticSurfaceLayer()
+        {
+            this.analyticSurfaceLayer = new RenderableLayer();
+            this.analyticSurfaceLayer.setPickEnabled(false);
+            this.analyticSurfaceLayer.setName("Analytic Surfaces");
+            insertBeforePlacenames(this.getWwd(), this.analyticSurfaceLayer);
+            this.getLayerPanel().update(this.getWwd());
+
+            //createRandomAltitudeSurface(HUE_BLUE, HUE_RED, 40, 40, this.analyticSurfaceLayer);
+            //createRandomColorSurface(HUE_BLUE, HUE_RED, 40, 40, this.analyticSurfaceLayer);
+
+            // Load the static precipitation data. Since it comes over the network, load it in a separate thread to
+            // avoid blocking the example if the load is slow or fails.
+            Thread t = new Thread(new Runnable()
+            {
+                public void run()
+                {
+                    createPrecipitationSurface(HUE_BLUE, HUE_RED, analyticSurfaceLayer);
+                }
+            });
+            t.start();
+        }
+	}
 
 		protected JPanel makeDetailHintControlPanel()
         {
@@ -154,6 +183,57 @@ public class Rocks extends ApplicationTemplate
 
             return null;
         }
+
+	    protected static ByteBuffer unzipEntryToBuffer(ZipFile zipFile, String entryName) throws IOException
+    	{
+        	ZipEntry entry = zipFile.getEntry(entryName);
+	        InputStream is = zipFile.getInputStream(entry);
+    	    return WWIO.readStreamToBuffer(is);
+    	}
+
+    	protected static BufferWrapperRaster loadZippedBILData(String uriString)
+    {
+        try
+        {
+            File zipFile = File.createTempFile("data", ".zip");
+            File hdrFile = File.createTempFile("data", ".hdr");
+            File blwFile = File.createTempFile("data", ".blw");
+            zipFile.deleteOnExit();
+            hdrFile.deleteOnExit();
+            blwFile.deleteOnExit();
+
+            ByteBuffer byteBuffer = WWIO.readURLContentToBuffer(new URI(uriString).toURL());
+            WWIO.saveBuffer(byteBuffer, zipFile);
+
+            ZipFile zip = new ZipFile(zipFile);
+            ByteBuffer dataBuffer = unzipEntryToBuffer(zip, "data.bil");
+            WWIO.saveBuffer(unzipEntryToBuffer(zip, "data.hdr"), hdrFile);
+            WWIO.saveBuffer(unzipEntryToBuffer(zip, "data.blw"), blwFile);
+            zip.close();
+
+            AVList params = new AVListImpl();
+            WorldFile.decodeWorldFiles(new File[] {hdrFile, blwFile}, params);
+            params.setValue(AVKey.DATA_TYPE, params.getValue(AVKey.PIXEL_TYPE));
+
+            Double missingDataSignal = (Double) params.getValue(AVKey.MISSING_DATA_REPLACEMENT);
+            if (missingDataSignal == null)
+                missingDataSignal = Double.NaN;
+
+            Sector sector = (Sector) params.getValue(AVKey.SECTOR);
+            int[] dimensions = (int[]) params.getValue(WorldFile.WORLD_FILE_IMAGE_SIZE);
+            BufferWrapper buffer = BufferWrapper.wrap(dataBuffer, params);
+
+            BufferWrapperRaster raster = new BufferWrapperRaster(dimensions[0], dimensions[1], sector, buffer);
+            raster.setTransparentValue(missingDataSignal);
+            return raster;
+        }
+        catch (Exception e)
+        {
+            String message = Logging.getMessage("generic.ExceptionAttemptingToReadFrom", uriString);
+            Logging.logger().severe(message);
+            return null;
+        }
+    }
 	}
 
 	public static void main(String[] args)
