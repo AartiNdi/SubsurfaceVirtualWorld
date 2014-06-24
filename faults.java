@@ -93,6 +93,7 @@ public class faults extends ApplicationTemplate {
         	surface.setValues(AnalyticSurface.createColorGradientValues(
             	raster.getBuffer(), raster.getTransparentValue(), extremes[0], extremes[1], minHue, maxHue));
         	surface.setVerticalScale(-100);
+
     	}
 	}
 }

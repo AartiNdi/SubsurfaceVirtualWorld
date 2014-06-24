@@ -114,7 +114,7 @@ public class Rocks extends ApplicationTemplate
             {
                 public void run()
                 {
-                    createPrecipitationSurface(HUE_BLUE, HUE_RED, analyticSurfaceLayer);
+                    createPipe(HUE_BLUE, HUE_RED, analyticSurfaceLayer);
                 }
             });
             t.start();
@@ -191,7 +191,30 @@ public class Rocks extends ApplicationTemplate
     	    return WWIO.readStreamToBuffer(is);
     	}
 
-    	protected static BufferWrapperRaster loadZippedBILData(String uriString)
+        protected static void createPipe(final RenderableLayer outLayer)
+        {
+            String dataLink = "blah";
+            BufferWrapperRaster raster = loadZippedBILData(dataLink);
+            if (raster == null)
+                return;
+
+            double[] extremes = WWBufferUtil.computeExtremeValues(raster.getBuffer(), raster.getTransparentValue());
+            if (extremes == null)
+                return;
+
+            final AnalyticSurface surface = new AnalyticSurface();
+            surface.setSector(raster.getSector());
+            surface.setDimensions(raster.getWidth(), raster.getHeight());
+
+            ShapeFileLoader shapeF = new ShapeFileLoader();
+            shapeF.addRenderableForPoints(gov.nasa.worldwind.formats.shapefile.Shapefile San_linear.shp, this.getLayer());
+
+            Position positionPipe = new Position( raster.getHeight())
+
+            Cylinder2 pipe = new Cylinder2()
+        }
+
+    protected static BufferWrapperRaster loadZippedBILData(String uriString)
     {
         try
         {
