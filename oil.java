@@ -39,11 +39,11 @@ import java.util.zip.ZipEntry;
 import java.net.URI;
 import java.net.URLClassLoader;
 
-public class faults extends ApplicationTemplate {
-	public static class AppFrame extends ApplicationTemplate.AppFrame {
-		public AppFrame()
-		{
-			//GDAL configuration
+public class Oil extends ApplicationTemplate
+{
+	public static class AppFrame extends ApplicationTemplate.AppFrame
+	{
+		//GDAL configuration
 			gdal.SetConfigOption("GDAL_DATA", "data");
 	        ogr.RegisterAll();
 	        Feature feat;
@@ -51,30 +51,10 @@ public class faults extends ApplicationTemplate {
 	        //assuming I extract data to rockData from source stringWithData
 	        String stringWithData = "/home/vahni/projects/gsoc/pipe.gml";
 	        DataSource rockData;
-	        rockData  = ogr.Open(stringWIthData);
-	        Feature pipe;
-		}
+	        oilData  = ogr.Open(stringWIthData);
+	}
 
-		protected static Renderable createLegendRenderable(final AnalyticSurface surface, final double surfaceMinScreenSize,
-        	final AnalyticSurfaceLegend legend)
-    	{
-        	return new Renderable()
-        	{
-            	public void render(DrawContext dc)
-            	{
-	                Extent extent = surface.getExtent(dc);
-    	            if (!extent.intersects(dc.getView().getFrustumInModelCoordinates()))
-        	            return;
-
-	                if (WWMath.computeSizeInWindowCoordinates(dc, extent) < surfaceMinScreenSize)
-    	                return;
-
-        	        legend.render(dc);
-            	}
-        	};
-    	}
-
-    	protected static BufferWrapperRaster loadZippedBILData(String uriString)
+	protected static BufferWrapperRaster loadZippedBILData(String uriString)
     	{
         	try
         	{
@@ -124,27 +104,4 @@ public class faults extends ApplicationTemplate {
 	        InputStream is = zipFile.getInputStream(entry);
     	    return WWIO.readStreamToBuffer(is);
     	}
-
-    	protected static void createFault(double minHue, double maxHue, final RenderableLayer outLayer, double strike, double length)
-    	{
-    		BufferWrapperRaster raster = loadZippedBILData(
-            //"http://worldwind.arc.nasa.gov/java/demos/data/wa-precip-24hmam.zip");
-                "http://forecast.chapman.edu/nickhatz/data.zip");
-        	if (raster == null)
-            	return;
-
-        	double[] extremes = WWBufferUtil.computeExtremeValues(raster.getBuffer(), raster.getTransparentValue());
-        	if (extremes == null)
-            	return;
-
-            final AnalyticSurface surface = new AnalyticSurface();
-            surface.setSector(raster.getSector());
-        	surface.setDimensions(raster.getWidth(), raster.getHeight());
-        
-        	surface.setValues(AnalyticSurface.createColorGradientValues(
-            	raster.getBuffer(), raster.getTransparentValue(), extremes[0], extremes[1], minHue, maxHue));
-        	surface.setVerticalScale(-100);
-
-    	}
-	}
 }

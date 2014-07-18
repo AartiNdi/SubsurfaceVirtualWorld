@@ -207,11 +207,11 @@ public class Rocks extends ApplicationTemplate
             surface.setDimensions(raster.getWidth(), raster.getHeight());
 
             ShapeFileLoader shapeF = new ShapeFileLoader();
-            shapeF.addRenderableForPoints(gov.nasa.worldwind.formats.shapefile.Shapefile San_linear.shp, this.getLayer());
+            double s = shapeF.addRenderableForPoints(gov.nasa.worldwind.formats.shapefile.Shapefile( "San_linear.shp"), this.getLayer());
 
-            Position positionPipe = new Position( raster.getHeight())
+            Position positionPipe = new Position( raster.getHeight());
 
-            Cylinder2 pipe = new Cylinder2()
+            Cylinder2 pipe = new Cylinder2();
         }
 
     protected static BufferWrapperRaster loadZippedBILData(String uriString)
@@ -257,7 +257,7 @@ public class Rocks extends ApplicationTemplate
             return null;
         }
     }
-	}
+
 
 	public static void main(String[] args)
     {
