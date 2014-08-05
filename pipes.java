@@ -202,6 +202,17 @@ public class Rocks extends ApplicationTemplate
             if (extremes == null)
                 return;
 
+            RenderableLayer layer = new RenderableLayer();
+
+            ShapeAttributes attrs = new BasicShapeAttributes();
+            attrs.setInteriorMaterial(Material.YELLOW);
+            attrs.setInteriorOpacity(0.3);
+            attrs.setEnableLighting(true);
+            attrs.setOutlineMaterial(Material.RED);
+            attrs.setOutlineWidth(2d);
+            attrs.setDrawInterior(true);
+            attrs.setDrawOutline(false);
+
             final AnalyticSurface surface = new AnalyticSurface();
             surface.setSector(raster.getSector());
             surface.setDimensions(raster.getWidth(), raster.getHeight());
@@ -209,9 +220,18 @@ public class Rocks extends ApplicationTemplate
             ShapeFileLoader shapeF = new ShapeFileLoader();
             double s = shapeF.addRenderableForPoints(gov.nasa.worldwind.formats.shapefile.Shapefile( "San_linear.shp"), this.getLayer());
 
-            Position positionPipe = new Position( raster.getHeight());
+            double elevation = Double.parseDouble(feat.GetFieldAsString("elevation"))*10;
+            Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
 
-            Cylinder2 pipe = new Cylinder2();
+            while((feat = poDS.GetLayerByIndex(0).GetNextFeature()) != null){
+                double elevation = Double.parseDouble(feat.GetFieldAsString("elevation"))*10;
+                Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
+                mycylinder.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
+                mycylinder.setAttributes(attrs);
+                mycylinder.setVisible(true);
+                layer.addRenderable(mycylinder);
+            }
+
         }
 
     protected static BufferWrapperRaster loadZippedBILData(String uriString)
