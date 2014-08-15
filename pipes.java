@@ -72,10 +72,6 @@ public class Rocks extends ApplicationTemplate
 	        Feature pipe;
 
 	        while((pipe = poDS.GetLayerByIndex(0).GetNextFeature()) != null){
-                //System.out.println("Name: "+feat.GetFieldAsString("gml_id"));
-                //System.out.println("Lon: "+feat.GetGeometryRef().GetX());
-                //System.out.println("Lat: "+feat.GetGeometryRef().GetY());
-                //System.out.println("Elev: "+feat.GetFieldAsString("elevation"));
                 double elevation = Double.parseDouble(pipe.GetFieldAsString("elevation"))*10;
                 Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
                 mycylinder.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
@@ -114,7 +110,7 @@ public class Rocks extends ApplicationTemplate
             {
                 public void run()
                 {
-                    createPipe(HUE_BLUE, HUE_RED, analyticSurfaceLayer);
+                    createPipe(analyticSurfaceLayer);
                 }
             });
             t.start();
@@ -191,7 +187,7 @@ public class Rocks extends ApplicationTemplate
     	    return WWIO.readStreamToBuffer(is);
     	}
 
-        protected static void createPipe(final RenderableLayer outLayer)
+        protected static void createPipe(final RenderableLayer analyticSurfaceLayer)
         {
             String dataLink = "blah";
             BufferWrapperRaster raster = loadZippedBILData(dataLink);

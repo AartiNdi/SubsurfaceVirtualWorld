@@ -142,9 +142,14 @@ public class faults extends ApplicationTemplate {
         	surface.setDimensions(raster.getWidth(), raster.getHeight());
         
         	surface.setValues(AnalyticSurface.createColorGradientValues(
-            	raster.getBuffer(), raster.getTransparentValue(), extremes[0], extremes[1], minHue, maxHue));
+            raster.getBuffer(), raster.getTransparentValue(), extremes[0], extremes[1], minHue, maxHue));
         	surface.setVerticalScale(-100);
 
     	}
 	}
+
+	public static void main(String[] args)
+    {
+        ApplicationTemplate.start("World Wind Cylinders", AppFrame.class);
+    }
 }
