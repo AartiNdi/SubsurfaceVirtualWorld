@@ -160,7 +160,7 @@ public class Oil extends ApplicationTemplate
         final AnalyticSurfaceLegend legend = AnalyticSurfaceLegend.fromColorGradient(extremes[0], extremes[1],
             minHue, maxHue,
             AnalyticSurfaceLegend.createDefaultColorGradientLabels(extremes[0], extremes[1], legendLabelFormat),
-            AnalyticSurfaceLegend.createDefaultTitle("2WhsBFScale Subsurface"));
+            AnalyticSurfaceLegend.createDefaultTitle("Oil"));
         legend.setScreenLocation(new Point(100, 300));
          
         
