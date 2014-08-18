@@ -46,237 +46,237 @@ public class Rocks extends ApplicationTemplate
 		public AppFrame()
 		{
 			// Add detail hint slider panel
-            this.getLayerPanel().add(this.makeDetailHintControlPanel(), BorderLayout.SOUTH);
+			this.getLayerPanel().add(this.makeDetailHintControlPanel(), BorderLayout.SOUTH);
 
-            RenderableLayer layer = new RenderableLayer();
+			RenderableLayer layer = new RenderableLayer();
 
-            // Create and set an attribute bundle.
-            ShapeAttributes attrs = new BasicShapeAttributes();
-            attrs.setInteriorMaterial(Material.YELLOW);
-            attrs.setInteriorOpacity(0.3);
-            attrs.setEnableLighting(true);
-            attrs.setOutlineMaterial(Material.RED);
-            attrs.setOutlineWidth(2d);
-            attrs.setDrawInterior(true);
-            attrs.setDrawOutline(false);
+			// Create and set an attribute bundle.
+			ShapeAttributes attrs = new BasicShapeAttributes();
+			attrs.setInteriorMaterial(Material.YELLOW);
+			attrs.setInteriorOpacity(0.3);
+			attrs.setEnableLighting(true);
+			attrs.setOutlineMaterial(Material.RED);
+			attrs.setOutlineWidth(2d);
+			attrs.setDrawInterior(true);
+			attrs.setDrawOutline(false);
 
-            //GDAL configuration
+			//GDAL configuration
 			gdal.SetConfigOption("GDAL_DATA", "data");
-	        ogr.RegisterAll();
-	        Feature feat;
+			ogr.RegisterAll();
+			Feature feat;
 
-	        //assuming I extract data to rockData from source stringWithData
-	        String stringWithData = "/home/vahni/projects/gsoc/pipe.gml";
-	        DataSource rockData;
-	        rockData  = ogr.Open(stringWIthData);
-	        Feature pipe;
+			//assuming I extract data to rockData from source stringWithData
+			String stringWithData = "/home/vahni/projects/gsoc/pipe.gml";
+			DataSource rockData;
+			rockData  = ogr.Open(stringWIthData);
+			Feature pipe;
 
-	        while((pipe = poDS.GetLayerByIndex(0).GetNextFeature()) != null){
-                double elevation = Double.parseDouble(pipe.GetFieldAsString("elevation"))*10;
-                Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
-                mycylinder.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
-                mycylinder.setAttributes(attrs);
-                mycylinder.setVisible(true);
-                mycylinder.setValue(AVKey.DISPLAY_NAME, "Cylinder with equal axes, Relative altitude mode");
-                layer.addRenderable(mycylinder);
-                
-            }
+			while((pipe = poDS.GetLayerByIndex(0).GetNextFeature()) != null){
+				double elevation = Double.parseDouble(pipe.GetFieldAsString("elevation"))*10;
+				Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
+				mycylinder.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
+				mycylinder.setAttributes(attrs);
+				mycylinder.setVisible(true);
+				mycylinder.setValue(AVKey.DISPLAY_NAME, "Cylinder with equal axes, Relative altitude mode");
+				layer.addRenderable(mycylinder);
 
-            //Make transparent the layers
-            for (Layer layer : this.getWwd().getModel().getLayers()){
-                layer.setOpacity(0.8);
-            }
+			}
 
-            // Add the layer to the model.
-            insertBeforeCompass(getWwd(), layer);
-            // Update layer panel
-            this.getLayerPanel().update(this.getWwd());
-        }
+			//Make transparent the layers
+			for (Layer layer : this.getWwd().getModel().getLayers()){
+				layer.setOpacity(0.8);
+			}
 
-        protected void initAnalyticSurfaceLayer()
-        {
-            this.analyticSurfaceLayer = new RenderableLayer();
-            this.analyticSurfaceLayer.setPickEnabled(false);
-            this.analyticSurfaceLayer.setName("Analytic Surfaces");
-            insertBeforePlacenames(this.getWwd(), this.analyticSurfaceLayer);
-            this.getLayerPanel().update(this.getWwd());
+			// Add the layer to the model.
+			insertBeforeCompass(getWwd(), layer);
+			// Update layer panel
+			this.getLayerPanel().update(this.getWwd());
+		}
 
-            //createRandomAltitudeSurface(HUE_BLUE, HUE_RED, 40, 40, this.analyticSurfaceLayer);
-            //createRandomColorSurface(HUE_BLUE, HUE_RED, 40, 40, this.analyticSurfaceLayer);
+		protected void initAnalyticSurfaceLayer()
+		{
+			this.analyticSurfaceLayer = new RenderableLayer();
+			this.analyticSurfaceLayer.setPickEnabled(false);
+			this.analyticSurfaceLayer.setName("Analytic Surfaces");
+			insertBeforePlacenames(this.getWwd(), this.analyticSurfaceLayer);
+			this.getLayerPanel().update(this.getWwd());
 
-            // Load the static precipitation data. Since it comes over the network, load it in a separate thread to
-            // avoid blocking the example if the load is slow or fails.
-            Thread t = new Thread(new Runnable()
-            {
-                public void run()
-                {
-                    createPipe(analyticSurfaceLayer);
-                }
-            });
-            t.start();
-        }
+			//createRandomAltitudeSurface(HUE_BLUE, HUE_RED, 40, 40, this.analyticSurfaceLayer);
+			//createRandomColorSurface(HUE_BLUE, HUE_RED, 40, 40, this.analyticSurfaceLayer);
+
+			// Load the static data. Since it comes over the network, load it in a separate thread to
+			// avoid blocking the example if the load is slow or fails.
+			Thread t = new Thread(new Runnable()
+			{
+				public void run()
+				{
+					createPipe(analyticSurfaceLayer);
+				}
+			});
+			t.start();
+		}
 	}
 
 		protected JPanel makeDetailHintControlPanel()
-        {
-            JPanel controlPanel = new JPanel(new BorderLayout(0, 10));
-            controlPanel.setBorder(new CompoundBorder(BorderFactory.createEmptyBorder(9, 9, 9, 9),
-                new TitledBorder("Detail Hint")));
+		{
+			JPanel controlPanel = new JPanel(new BorderLayout(0, 10));
+			controlPanel.setBorder(new CompoundBorder(BorderFactory.createEmptyBorder(9, 9, 9, 9),
+			new TitledBorder("Detail Hint")));
 
-            JPanel detailHintSliderPanel = new JPanel(new BorderLayout(0, 5));
-            {
-                int MIN = -10;
-                int MAX = 10;
-                int cur = 0;
-                JSlider slider = new JSlider(MIN, MAX, cur);
-                slider.setMajorTickSpacing(10);
-                slider.setMinorTickSpacing(1);
-                slider.setPaintTicks(true);
-                Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-                labelTable.put(-10, new JLabel("-1.0"));
-                labelTable.put(0, new JLabel("0.0"));
-                labelTable.put(10, new JLabel("1.0"));
-                slider.setLabelTable(labelTable);
-                slider.setPaintLabels(true);
-                slider.addChangeListener(new ChangeListener()
-                {
-                    public void stateChanged(ChangeEvent e)
-                    {
-                        double hint = ((JSlider) e.getSource()).getValue() / 10d;
-                        setCylinderDetailHint(hint);
-                        getWwd().redraw();
-                    }
-                });
-                detailHintSliderPanel.add(slider, BorderLayout.SOUTH);
-            }
+			JPanel detailHintSliderPanel = new JPanel(new BorderLayout(0, 5));
+			{
+				int MIN = -10;
+				int MAX = 10;
+				int cur = 0;
+				JSlider slider = new JSlider(MIN, MAX, cur);
+				slider.setMajorTickSpacing(10);
+				slider.setMinorTickSpacing(1);
+				slider.setPaintTicks(true);
+				Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+				labelTable.put(-10, new JLabel("-1.0"));
+				labelTable.put(0, new JLabel("0.0"));
+				labelTable.put(10, new JLabel("1.0"));
+				slider.setLabelTable(labelTable);
+				slider.setPaintLabels(true);
+				slider.addChangeListener(new ChangeListener()
+				{
+					public void stateChanged(ChangeEvent e)
+					{
+						double hint = ((JSlider) e.getSource()).getValue() / 10d;
+						setCylinderDetailHint(hint);
+						getWwd().redraw();
+					}
+				});
+				detailHintSliderPanel.add(slider, BorderLayout.SOUTH);
+			}
 
-            JPanel sliderPanel = new JPanel(new GridLayout(2, 0));
-            sliderPanel.add(detailHintSliderPanel);
+			JPanel sliderPanel = new JPanel(new GridLayout(2, 0));
+			sliderPanel.add(detailHintSliderPanel);
 
-            controlPanel.add(sliderPanel, BorderLayout.SOUTH);
-            return controlPanel;
-        }
+			controlPanel.add(sliderPanel, BorderLayout.SOUTH);
+			return controlPanel;
+		}
 
-        protected void setCylinderDetailHint(double hint)
-        {
-            for (Renderable renderable : getLayer().getRenderables())
-            {
-                Cylinder2 current = (Cylinder2) renderable;
-                current.setDetailHint(hint);
-            }
-            System.out.println("cylinder detail hint set to " + hint);
-        }
+		protected void setCylinderDetailHint(double hint)
+		{
+			for (Renderable renderable : getLayer().getRenderables())
+			{
+				Cylinder2 current = (Cylinder2) renderable;
+				current.setDetailHint(hint);
+			}
+			System.out.println("cylinder detail hint set to " + hint);
+		}
 
 		protected RenderableLayer getLayer()
-        {
-            for (Layer layer : getWwd().getModel().getLayers())
-            {
-                if (layer.getName().contains("Renderable"))
-                {
-                    return (RenderableLayer) layer;
-                }
-            }
+		{
+			for (Layer layer : getWwd().getModel().getLayers())
+			{
+				if (layer.getName().contains("Renderable"))
+				{
+					return (RenderableLayer) layer;
+				}
+			}
 
-            return null;
-        }
+			return null;
+		}
 
-	    protected static ByteBuffer unzipEntryToBuffer(ZipFile zipFile, String entryName) throws IOException
-    	{
-        	ZipEntry entry = zipFile.getEntry(entryName);
-	        InputStream is = zipFile.getInputStream(entry);
-    	    return WWIO.readStreamToBuffer(is);
-    	}
+		protected static ByteBuffer unzipEntryToBuffer(ZipFile zipFile, String entryName) throws IOException
+		{
+			ZipEntry entry = zipFile.getEntry(entryName);
+			InputStream is = zipFile.getInputStream(entry);
+			return WWIO.readStreamToBuffer(is);
+		}
 
-        protected static void createPipe(final RenderableLayer analyticSurfaceLayer)
-        {
-            String dataLink = "blah";
-            BufferWrapperRaster raster = loadZippedBILData(dataLink);
-            if (raster == null)
-                return;
+		protected static void createPipe(final RenderableLayer analyticSurfaceLayer)
+		{
+			String dataLink = "blah";
+			BufferWrapperRaster raster = loadZippedBILData(dataLink);
+			if (raster == null)
+				return;
 
-            double[] extremes = WWBufferUtil.computeExtremeValues(raster.getBuffer(), raster.getTransparentValue());
-            if (extremes == null)
-                return;
+			double[] extremes = WWBufferUtil.computeExtremeValues(raster.getBuffer(), raster.getTransparentValue());
+			if (extremes == null)
+				return;
 
-            RenderableLayer layer = new RenderableLayer();
+			RenderableLayer layer = new RenderableLayer();
 
-            ShapeAttributes attrs = new BasicShapeAttributes();
-            attrs.setInteriorMaterial(Material.YELLOW);
-            attrs.setInteriorOpacity(0.3);
-            attrs.setEnableLighting(true);
-            attrs.setOutlineMaterial(Material.RED);
-            attrs.setOutlineWidth(2d);
-            attrs.setDrawInterior(true);
-            attrs.setDrawOutline(false);
+			ShapeAttributes attrs = new BasicShapeAttributes();
+			attrs.setInteriorMaterial(Material.YELLOW);
+			attrs.setInteriorOpacity(0.3);
+			attrs.setEnableLighting(true);
+			attrs.setOutlineMaterial(Material.RED);
+			attrs.setOutlineWidth(2d);
+			attrs.setDrawInterior(true);
+			attrs.setDrawOutline(false);
 
-            final AnalyticSurface surface = new AnalyticSurface();
-            surface.setSector(raster.getSector());
-            surface.setDimensions(raster.getWidth(), raster.getHeight());
+			final AnalyticSurface surface = new AnalyticSurface();
+			surface.setSector(raster.getSector());
+			surface.setDimensions(raster.getWidth(), raster.getHeight());
 
-            ShapeFileLoader shapeF = new ShapeFileLoader();
-            double s = shapeF.addRenderableForPoints(gov.nasa.worldwind.formats.shapefile.Shapefile( "San_linear.shp"), this.getLayer());
+			ShapeFileLoader shapeF = new ShapeFileLoader();
+			double s = shapeF.addRenderableForPoints(gov.nasa.worldwind.formats.shapefile.Shapefile( "San_linear.shp"), this.getLayer());
 
-            double elevation = Double.parseDouble(feat.GetFieldAsString("elevation"))*10;
-            Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
+			double elevation = Double.parseDouble(feat.GetFieldAsString("elevation"))*10;
+			Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
 
-            while((feat = poDS.GetLayerByIndex(0).GetNextFeature()) != null){
-                double elevation = Double.parseDouble(feat.GetFieldAsString("elevation"))*10;
-                Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
-                mycylinder.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
-                mycylinder.setAttributes(attrs);
-                mycylinder.setVisible(true);
-                layer.addRenderable(mycylinder);
-            }
+			while((feat = poDS.GetLayerByIndex(0).GetNextFeature()) != null){
+			double elevation = Double.parseDouble(feat.GetFieldAsString("elevation"))*10;
+			Cylinder2 mycylinder = new Cylinder2(Position.fromDegrees(feat.GetGeometryRef().GetY(), feat.GetGeometryRef().GetX(), (elevation/2)-elevation), elevation , 20);
+			mycylinder.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
+			mycylinder.setAttributes(attrs);
+			mycylinder.setVisible(true);
+			layer.addRenderable(mycylinder);
+		}
 
-        }
+	}
 
-    protected static BufferWrapperRaster loadZippedBILData(String uriString)
-    {
-        try
-        {
-            File zipFile = File.createTempFile("data", ".zip");
-            File hdrFile = File.createTempFile("data", ".hdr");
-            File blwFile = File.createTempFile("data", ".blw");
-            zipFile.deleteOnExit();
-            hdrFile.deleteOnExit();
-            blwFile.deleteOnExit();
+	protected static BufferWrapperRaster loadZippedBILData(String uriString)
+	{
+		try
+		{
+			File zipFile = File.createTempFile("data", ".zip");
+			File hdrFile = File.createTempFile("data", ".hdr");
+			File blwFile = File.createTempFile("data", ".blw");
+			zipFile.deleteOnExit();
+			hdrFile.deleteOnExit();
+			blwFile.deleteOnExit();
 
-            ByteBuffer byteBuffer = WWIO.readURLContentToBuffer(new URI(uriString).toURL());
-            WWIO.saveBuffer(byteBuffer, zipFile);
+			ByteBuffer byteBuffer = WWIO.readURLContentToBuffer(new URI(uriString).toURL());
+			WWIO.saveBuffer(byteBuffer, zipFile);
 
-            ZipFile zip = new ZipFile(zipFile);
-            ByteBuffer dataBuffer = unzipEntryToBuffer(zip, "data.bil");
-            WWIO.saveBuffer(unzipEntryToBuffer(zip, "data.hdr"), hdrFile);
-            WWIO.saveBuffer(unzipEntryToBuffer(zip, "data.blw"), blwFile);
-            zip.close();
+			ZipFile zip = new ZipFile(zipFile);
+			ByteBuffer dataBuffer = unzipEntryToBuffer(zip, "data.bil");
+			WWIO.saveBuffer(unzipEntryToBuffer(zip, "data.hdr"), hdrFile);
+			WWIO.saveBuffer(unzipEntryToBuffer(zip, "data.blw"), blwFile);
+			zip.close();
 
-            AVList params = new AVListImpl();
-            WorldFile.decodeWorldFiles(new File[] {hdrFile, blwFile}, params);
-            params.setValue(AVKey.DATA_TYPE, params.getValue(AVKey.PIXEL_TYPE));
+			AVList params = new AVListImpl();
+			WorldFile.decodeWorldFiles(new File[] {hdrFile, blwFile}, params);
+			params.setValue(AVKey.DATA_TYPE, params.getValue(AVKey.PIXEL_TYPE));
 
-            Double missingDataSignal = (Double) params.getValue(AVKey.MISSING_DATA_REPLACEMENT);
-            if (missingDataSignal == null)
-                missingDataSignal = Double.NaN;
+			Double missingDataSignal = (Double) params.getValue(AVKey.MISSING_DATA_REPLACEMENT);
+			if (missingDataSignal == null)
+				missingDataSignal = Double.NaN;
 
-            Sector sector = (Sector) params.getValue(AVKey.SECTOR);
-            int[] dimensions = (int[]) params.getValue(WorldFile.WORLD_FILE_IMAGE_SIZE);
-            BufferWrapper buffer = BufferWrapper.wrap(dataBuffer, params);
+			Sector sector = (Sector) params.getValue(AVKey.SECTOR);
+			int[] dimensions = (int[]) params.getValue(WorldFile.WORLD_FILE_IMAGE_SIZE);
+			BufferWrapper buffer = BufferWrapper.wrap(dataBuffer, params);
 
-            BufferWrapperRaster raster = new BufferWrapperRaster(dimensions[0], dimensions[1], sector, buffer);
-            raster.setTransparentValue(missingDataSignal);
-            return raster;
-        }
-        catch (Exception e)
-        {
-            String message = Logging.getMessage("generic.ExceptionAttemptingToReadFrom", uriString);
-            Logging.logger().severe(message);
-            return null;
-        }
-    }
+			BufferWrapperRaster raster = new BufferWrapperRaster(dimensions[0], dimensions[1], sector, buffer);
+			raster.setTransparentValue(missingDataSignal);
+			return raster;
+		}
+		catch (Exception e)
+		{
+			String message = Logging.getMessage("generic.ExceptionAttemptingToReadFrom", uriString);
+			Logging.logger().severe(message);
+			return null;
+		}
+	}
 
 
 	public static void main(String[] args)
-    {
-        ApplicationTemplate.start("World Wind Cylinders", AppFrame.class);
-    }
+	{
+		ApplicationTemplate.start("World Wind Cylinders", AppFrame.class);
+	}
 }

@@ -45,141 +45,141 @@ public class faults extends ApplicationTemplate {
 		{
 			//GDAL configuration
 			gdal.SetConfigOption("GDAL_DATA", "data");
-	        ogr.RegisterAll();
-	        Feature feat;
+		        ogr.RegisterAll();
+		        Feature feat;
 
-	        //assuming I extract data to rockData from source stringWithData
-	        String stringWithData = "/home/vahni/projects/gsoc/pipe.gml";
-	        DataSource rockData;
-	        rockData  = ogr.Open(stringWIthData);
-	        Feature pipe;
+	        	//assuming I extract data to rockData from source stringWithData
+		        String stringWithData = "/home/vahni/projects/gsoc/pipe.gml";
+		        DataSource rockData;
+	        	rockData  = ogr.Open(stringWIthData);
+		        Feature pipe;
 		}
 
 		protected static Renderable createLegendRenderable(final AnalyticSurface surface, final double surfaceMinScreenSize,
-        	final AnalyticSurfaceLegend legend)
-    	{
-        	return new Renderable()
-        	{
-            	public void render(DrawContext dc)
-            	{
-	                Extent extent = surface.getExtent(dc);
-    	            if (!extent.intersects(dc.getView().getFrustumInModelCoordinates()))
-        	            return;
+	final AnalyticSurfaceLegend legend)
+		{
+			return new Renderable()
+			{
+				public void render(DrawContext dc)
+				{
+					Extent extent = surface.getExtent(dc);
+					if (!extent.intersects(dc.getView().getFrustumInModelCoordinates()))
+						return;
 
-	                if (WWMath.computeSizeInWindowCoordinates(dc, extent) < surfaceMinScreenSize)
-    	                return;
+					if (WWMath.computeSizeInWindowCoordinates(dc, extent) < surfaceMinScreenSize)
+						return;
 
-        	        legend.render(dc);
-            	}
-        	};
-    	}
+					legend.render(dc);
+				}
+			};
+		}
 
-    	protected static BufferWrapperRaster loadZippedBILData(String uriString)
-    	{
-        	try
-        	{
-        	    File zipFile = File.createTempFile("data", ".zip");
-    	        File hdrFile = File.createTempFile("data", ".hdr");
-	            File blwFile = File.createTempFile("data", ".blw");
-            	zipFile.deleteOnExit();
-        	    hdrFile.deleteOnExit();
-    	        blwFile.deleteOnExit();
+		protected static BufferWrapperRaster loadZippedBILData(String uriString)
+		{
+			try
+			{
+				File zipFile = File.createTempFile("data", ".zip");
+				File hdrFile = File.createTempFile("data", ".hdr");
+				File blwFile = File.createTempFile("data", ".blw");
+				zipFile.deleteOnExit();
+				hdrFile.deleteOnExit();
+				blwFile.deleteOnExit();
 
-	            ByteBuffer byteBuffer = WWIO.readURLContentToBuffer(new URI(uriString).toURL());
-            	WWIO.saveBuffer(byteBuffer, zipFile);
+				ByteBuffer byteBuffer = WWIO.readURLContentToBuffer(new URI(uriString).toURL());
+				WWIO.saveBuffer(byteBuffer, zipFile);
 
-            	ZipFile zip = new ZipFile(zipFile);
-            	ByteBuffer dataBuffer = unzipEntryToBuffer(zip, "data.bil");
-        	    WWIO.saveBuffer(unzipEntryToBuffer(zip, "data.hdr"), hdrFile);
-    	        WWIO.saveBuffer(unzipEntryToBuffer(zip, "data.blw"), blwFile);
-	            zip.close();
+				ZipFile zip = new ZipFile(zipFile);
+				ByteBuffer dataBuffer = unzipEntryToBuffer(zip, "data.bil");
+				WWIO.saveBuffer(unzipEntryToBuffer(zip, "data.hdr"), hdrFile);
+				WWIO.saveBuffer(unzipEntryToBuffer(zip, "data.blw"), blwFile);
+				zip.close();
 
-            	AVList params = new AVListImpl();
-            	WorldFile.decodeWorldFiles(new File[] {hdrFile, blwFile}, params);
-        	    params.setValue(AVKey.DATA_TYPE, params.getValue(AVKey.PIXEL_TYPE));
+				AVList params = new AVListImpl();
+				WorldFile.decodeWorldFiles(new File[] {hdrFile, blwFile}, params);
+				params.setValue(AVKey.DATA_TYPE, params.getValue(AVKey.PIXEL_TYPE));
 
-    	        Double missingDataSignal = (Double) params.getValue(AVKey.MISSING_DATA_REPLACEMENT);
-	            if (missingDataSignal == null)
-            	    missingDataSignal = Double.NaN;
+				Double missingDataSignal = (Double) params.getValue(AVKey.MISSING_DATA_REPLACEMENT);
+				if (missingDataSignal == null)
+					missingDataSignal = Double.NaN;
 
-        	    Sector sector = (Sector) params.getValue(AVKey.SECTOR);
-    	        int[] dimensions = (int[]) params.getValue(WorldFile.WORLD_FILE_IMAGE_SIZE);
-	            BufferWrapper buffer = BufferWrapper.wrap(dataBuffer, params);
+				Sector sector = (Sector) params.getValue(AVKey.SECTOR);
+				int[] dimensions = (int[]) params.getValue(WorldFile.WORLD_FILE_IMAGE_SIZE);
+				BufferWrapper buffer = BufferWrapper.wrap(dataBuffer, params);
 
-            	BufferWrapperRaster raster = new BufferWrapperRaster(dimensions[0], dimensions[1], sector, buffer);
-        	    raster.setTransparentValue(missingDataSignal);
-    	        return raster;
-	        }
-        	catch (Exception e)
-    	    {
-	            String message = Logging.getMessage("generic.ExceptionAttemptingToReadFrom", uriString);
-            	Logging.logger().severe(message);
-        	    return null;
-     	   }
-    	}
+				BufferWrapperRaster raster = new BufferWrapperRaster(dimensions[0], dimensions[1], sector, buffer);
+				raster.setTransparentValue(missingDataSignal);
+				return raster;
+			}
+			catch (Exception e)
+			{
+				String message = Logging.getMessage("generic.ExceptionAttemptingToReadFrom", uriString);
+				Logging.logger().severe(message);
+				return null;
+			}
+		}
 
-    	protected static ByteBuffer unzipEntryToBuffer(ZipFile zipFile, String entryName) throws IOException
-    	{
-        	ZipEntry entry = zipFile.getEntry(entryName);
-	        InputStream is = zipFile.getInputStream(entry);
-    	    return WWIO.readStreamToBuffer(is);
-    	}
+	    	protected static ByteBuffer unzipEntryToBuffer(ZipFile zipFile, String entryName) throws IOException
+		{
+			ZipEntry entry = zipFile.getEntry(entryName);
+		        InputStream is = zipFile.getInputStream(entry);
+			return WWIO.readStreamToBuffer(is);
+		}
 
-    	protected static void createFault(double minHue, double maxHue, final RenderableLayer outLayer)
-    	{
-            BufferWrapperRaster raster = loadZippedBILData(
+	    	protected static void createFault(double minHue, double maxHue, final RenderableLayer outLayer)
+		{
+			BufferWrapperRaster raster = loadZippedBILData(
             //"http://worldwind.arc.nasa.gov/java/demos/data/wa-precip-24hmam.zip");
                 "http://forecast.chapman.edu/nickhatz/data.zip");
-            if (raster == null)
-                return;
+			if (raster == null)
+				return;
 
-            double[] extremes = WWBufferUtil.computeExtremeValues(raster.getBuffer(), raster.getTransparentValue());
-            if (extremes == null)
-                return;        
+			double[] extremes = WWBufferUtil.computeExtremeValues(raster.getBuffer(), raster.getTransparentValue());
+			if (extremes == null)
+				return;       
 
-            final AnalyticSurface surface = new AnalyticSurface();
-            surface.setSector(raster.getSector());
-            surface.setDimensions(raster.getWidth(), raster.getHeight());
+			final AnalyticSurface surface = new AnalyticSurface();
+			surface.setSector(raster.getSector());
+			surface.setDimensions(raster.getWidth(), raster.getHeight());
+
+			surface.setValues(AnalyticSurface.createColorGradientValues(
+			raster.getBuffer(), raster.getTransparentValue(), extremes[0], extremes[1], minHue, maxHue));
+			surface.setVerticalScale(-100);
+
+			AnalyticSurfaceAttributes attr = new AnalyticSurfaceAttributes();
+			attr.setDrawOutline(true);
+			attr.setDrawShadow(false);
+			attr.setInteriorOpacity(0.3);
+			surface.setSurfaceAttributes(attr);
+
+			Format legendLabelFormat = new DecimalFormat("# ft")
+			{ 
+				public StringBuffer format(double number, StringBuffer result, FieldPosition fieldPosition)
+				{
+					double valueInFeet = number * WWMath.METERS_TO_FEET;
+					return super.format(valueInFeet, result, fieldPosition);
+				}
+			};
         
-            surface.setValues(AnalyticSurface.createColorGradientValues(
-                raster.getBuffer(), raster.getTransparentValue(), extremes[0], extremes[1], minHue, maxHue));
-            surface.setVerticalScale(-100);
+			final AnalyticSurfaceLegend legend = AnalyticSurfaceLegend.fromColorGradient(extremes[0], extremes[1],
+				 minHue, maxHue,
+			AnalyticSurfaceLegend.createDefaultTitle("Fault"));
+			legend.setScreenLocation(new Point(100, 300));
 
-            AnalyticSurfaceAttributes attr = new AnalyticSurfaceAttributes();
-            attr.setDrawOutline(true);
-            attr.setDrawShadow(false);
-            attr.setInteriorOpacity(0.3);
-            surface.setSurfaceAttributes(attr);
 
-            Format legendLabelFormat = new DecimalFormat("# ft")
-            {
-                public StringBuffer format(double number, StringBuffer result, FieldPosition fieldPosition)
-                {
-                    double valueInFeet = number * WWMath.METERS_TO_FEET;
-                    return super.format(valueInFeet, result, fieldPosition);
-                }
-            };
-        
-            final AnalyticSurfaceLegend legend = AnalyticSurfaceLegend.fromColorGradient(extremes[0], extremes[1],
-                minHue, maxHue,
-                AnalyticSurfaceLegend.createDefaultTitle("Fault"));
-            legend.setScreenLocation(new Point(100, 300));
-         
-        
-            SwingUtilities.invokeLater(new Runnable()
-            {
-                public void run()
-                {
-                    surface.setClientLayer(outLayer);
-                    outLayer.addRenderable(surface);
-                    outLayer.addRenderable(createLegendRenderable(surface, 300, legend));
-                }
-            });
-    	}
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run()
+				{
+					surface.setClientLayer(outLayer);
+					outLayer.addRenderable(surface);
+					outLayer.addRenderable(createLegendRenderable(surface, 300, legend));
+				}
+			});
+		}
 	}
 
 	public static void main(String[] args)
-    {
-        ApplicationTemplate.start("World Wind Cylinders", AppFrame.class);
-    }
+	{
+		ApplicationTemplate.start("World Wind Cylinders", AppFrame.class);
+	}
 }
