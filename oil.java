@@ -123,9 +123,7 @@ public class Oil extends ApplicationTemplate
 
 	protected static void createOil(final RenderableLayer analyticSurfaceLayer){
 
-		BufferWrapperRaster raster = loadZippedBILData(
-			//"http://worldwind.arc.nasa.gov/java/demos/data/wa-precip-24hmam.zip");
-			"http://forecast.chapman.edu/nickhatz/data.zip");
+		BufferWrapperRaster raster = loadZippedBILData("");
 		if (raster == null)
 			return;
 

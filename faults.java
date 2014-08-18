@@ -74,6 +74,7 @@ public class faults extends ApplicationTemplate {
 			};
 		}
 
+        //loads data
 		protected static BufferWrapperRaster loadZippedBILData(String uriString)
 		{
 			try
@@ -127,9 +128,7 @@ public class faults extends ApplicationTemplate {
 
 	    	protected static void createFault(double minHue, double maxHue, final RenderableLayer outLayer)
 		{
-			BufferWrapperRaster raster = loadZippedBILData(
-            //"http://worldwind.arc.nasa.gov/java/demos/data/wa-precip-24hmam.zip");
-                "http://forecast.chapman.edu/nickhatz/data.zip");
+			BufferWrapperRaster raster = loadZippedBILData("");
 			if (raster == null)
 				return;
 
